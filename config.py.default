@@ -1,3 +1,13 @@
 # хосты & ip-адреса
 LOCAL_HOST = 'http://localhost'
 LOCAL_IP = '127.0.0.1'
+
+# ключи и пароли проекта django
+SETTINGS_SECRET_KEY = ''
+
+# конфигурация проекта django
+DEBUG = True
+APPEND_SLASH = False 
+ALLOWED_HOSTS = [
+    
+]
