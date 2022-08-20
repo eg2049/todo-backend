@@ -1,0 +1,3 @@
+# хосты & ip-адреса
+LOCAL_HOST = 'http://localhost'
+LOCAL_IP = '127.0.0.1'
