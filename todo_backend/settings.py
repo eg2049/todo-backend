@@ -48,6 +48,11 @@ INSTALLED_APPS += [
     'rest_framework',
 ]
 
+# Project applications
+INSTALLED_APPS += [
+    'todo_backend_app.apps.TodoBackendAppConfig',
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
