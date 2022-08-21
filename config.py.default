@@ -1,5 +1,5 @@
 # хосты & ip-адреса
-LOCAL_HOST = 'http://localhost'
+LOCAL_HOST = 'localhost'
 LOCAL_IP = '127.0.0.1'
 
 # ключи и пароли проекта django
@@ -18,3 +18,15 @@ POSTGRES_PORT = 5432
 POSTGRES_USER = ''
 POSTGRES_PASSWORD = ''
 DB_NAME = ''
+
+# corseheaders
+CORS_URLS_REGEX = r'^/api/.*$'
+
+CORS_ALLOWED_ORIGINS = [
+
+]
+
+CORS_ALLOWED_ORIGINS_DEBUG = [
+    'http://localhost:3000',
+    'https://localhost:3000',
+]
