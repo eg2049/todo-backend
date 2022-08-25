@@ -19,6 +19,7 @@ class TodoViewSet(viewsets.ModelViewSet):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
     lookup_field = 'pk'
+
     permission_classes = [
-        permissions.AllowAny
+        permissions.IsAuthenticated,
     ]

@@ -6,7 +6,7 @@ Use Python 3.10.0
 Представления rest_framework.generics
 """
 
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from .models import Todo
 from .serializers import TodoSerializer
@@ -15,3 +15,7 @@ from .serializers import TodoSerializer
 class TodoListCreateAPIView(generics.ListCreateAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]

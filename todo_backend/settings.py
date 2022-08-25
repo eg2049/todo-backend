@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 # Third party packages
 INSTALLED_APPS += [
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
 ]
 
@@ -142,7 +143,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# restframework
+REST_FRAMEWORK = config.REST_FRAMEWORK
+
 # corsheaders
+CORS_ALLOWED_ORIGINS = config.CORS_ALLOWED_ORIGINS
+
 CORS_URLS_REGEX = config.CORS_URLS_REGEX
-CORS_ALLOWED_ORIGINS = config.CORS_ALLOWED_ORIGINS + \
-    config.CORS_ALLOWED_ORIGINS_DEBUG if DEBUG else config.CORS_ALLOWED_ORIGINS
+
+CORS_ALLOW_HEADERS = config.CORS_ALLOW_HEADERS
+
+CORS_EXPOSE_HEADERS = config.CORS_EXPOSE_HEADERS
+
+CORS_ALLOW_CREDENTIALS = config.CORS_ALLOW_CREDENTIALS
