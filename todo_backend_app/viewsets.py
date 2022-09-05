@@ -8,11 +8,14 @@ Use Python 3.10.0
 
 from rest_framework import permissions, viewsets
 
+from .mixins import UserTodoQueryMixin
 from .models import Todo
 from .serializers import TodoSerializer
 
 
-class TodoViewSet(viewsets.ModelViewSet):
+class TodoViewSet(
+        UserTodoQueryMixin,
+        viewsets.ModelViewSet):
     """
     Представление модели Todo
     """
