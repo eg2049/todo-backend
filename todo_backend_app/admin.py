@@ -8,7 +8,16 @@ Use Python 3.10.0
 
 from django.contrib import admin
 
-from .models import Todo
+from .models import Profile, Todo
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    """
+    Отображение модели Profile
+    """
+    list_display = ('id', 'user', 'created_date', 'modified_date', 'version', )
+    list_display_links = ('id', 'user', )
+    search_fields = ('id', 'user', )
 
 
 class TodoAdmin(admin.ModelAdmin):
@@ -24,3 +33,4 @@ class TodoAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Todo, TodoAdmin)
+admin.site.register(Profile, ProfileAdmin)
