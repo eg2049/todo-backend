@@ -5,9 +5,9 @@ import os
 import sys
 
 try:
-    import config
+    from config import config
 except ImportError:
-    exit('DO "cp config.py.default config.py" and fill in the config file!"')
+    exit('DO "cp config/config.py.default config/config.py" and fill in the config file!"')
 
 
 def main():
