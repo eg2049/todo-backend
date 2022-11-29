@@ -16,7 +16,7 @@ SETTINGS_SECRET_KEY = ''
 # конфигурация проекта django
 DEBUG = True
 
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 ALLOWED_HOSTS = [
 

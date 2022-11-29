@@ -30,6 +30,8 @@ DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
+APPEND_SLASH = config.APPEND_SLASH
+
 
 # Application definition
 
