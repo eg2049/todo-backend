@@ -8,24 +8,29 @@ Use Python 3.10.0
 
 from rest_framework import permissions, viewsets
 
-from .mixins import UserTodoQueryMixin
-from .models import Todo
-from .serializers import TodoSerializer
+from todo_backend_app.mixins import TodoMixin
+from todo_backend_app.models import Todo
+from todo_backend_app.serializers import TodoSerializer
 
 
-class TodoViewSet(
-        UserTodoQueryMixin,
-        viewsets.ModelViewSet):
+class TodoViewSet(TodoMixin, viewsets.ModelViewSet):
+    """Представление модели Todo
     """
-    Представление модели Todo
-    """
+
+    # список с инстансами модели Todo
     queryset = Todo.objects.all()
+
+    # класс сериализатор модели Todo
     serializer_class = TodoSerializer
+
+    # поле по которому происходит идентификация инстанса Todo
     lookup_field = 'pk'
 
+    # разрешения необходимые при работе с инстансами Todo
     permission_classes = [
         permissions.IsAuthenticated,
     ]
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+
+if __name__ == '__main__':
+    pass

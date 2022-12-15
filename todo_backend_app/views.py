@@ -7,52 +7,79 @@ Use Python 3.10.0
 """
 
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
+
+from rest_framework import generics, permissions
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 
-from .models import Todo
-from .serializers import TodoSerializer, UserSerializer
+from todo_backend_app.mixins import LoginMixin, LogoutMixin, UserMixin
+from todo_backend_app.models import Todo
+from todo_backend_app.serializers import TodoSerializer, UserSerializer
 
 
-class LogoutAPIView(APIView):
+class LoginAPIView(LoginMixin, ObtainAuthToken):
+    """Представление для обработки запроса на аутентификацию
+    """
 
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
-
-    def post(self, request, *args, **kwargs):
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
-
-
-class TodoListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Todo.objects.all()
-    serializer_class = TodoSerializer
-
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
-
-
-class UserDetailAPIView(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.queryset.get(pk=request.user.pk)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-
-class UserRegistrationAPIView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
+    # разрешения необходимые для аутентификации
     permission_classes = [
         permissions.AllowAny,
     ]
+
+
+class LogoutAPIView(LogoutMixin, APIView):
+    """Представление для обработки запроса на деаутентификацию
+    """
+
+    # разрешения необходимые для деаутентификации
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
+
+
+class TodoListCreateAPIView(generics.ListCreateAPIView):
+    """Представление для обработки запроса 
+    на создание инстанса модели Todo 
+    и получение списка инстансов модели Todo
+    """
+
+    # список с инстансами модели Todo
+    queryset = Todo.objects.all()
+
+    # класс сериализатор модели Todo
+    serializer_class = TodoSerializer
+
+    # разрешения необходимые для создания инстанса Todo и получение списка инстансов Todo
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
+
+
+class UserDetailAPIView(UserMixin, generics.RetrieveAPIView):
+    """Представление для обработки запроса на получение данных пользователя
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    # разрешения необходимые для получения данных пользователя
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
+
+
+class UserRegistrationAPIView(UserMixin, generics.CreateAPIView):
+    """Представление для обработки запроса на регистрацию пользователя
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    # разрешения необходимые для регистрации
+    permission_classes = [
+        permissions.AllowAny,
+    ]
+
+
+if __name__ == '__main__':
+    pass

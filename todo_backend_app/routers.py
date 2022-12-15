@@ -8,11 +8,14 @@ Use Python 3.10.0
 
 from rest_framework import routers
 
-from .viewsets import TodoViewSet
+from todo_backend_app.viewsets import TodoViewSet
 
 
+# создание маршрутизатора
 router = routers.DefaultRouter()
+
+# регистрация маршрута (endpoint-а) "/todo/"
 router.register(prefix='todo', viewset=TodoViewSet, basename='todo')
 
-
+# список с endpoint-ами и обрабатывающими их представления
 urlpatterns = router.urls
