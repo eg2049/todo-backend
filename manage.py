@@ -4,6 +4,8 @@
 import os
 import sys
 
+from todo_backend_app.daemons.daemon_launcher import daemon_launcher
+
 try:
     from config import config
 except ImportError:
@@ -21,6 +23,10 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+
+    # запус демонов перед запуском "основного" приложения
+    daemon_launcher()
+
     execute_from_command_line(sys.argv)
 
 
