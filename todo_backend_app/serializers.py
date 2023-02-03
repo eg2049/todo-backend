@@ -6,10 +6,12 @@ Use Python 3.10.0
 Сериализаторы
 """
 
+from uuid import uuid4
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from todo_backend_app.models import Profile, Todo
+from todo_backend_app.models import Profile, SystemEvent, Todo
 
 # # не используется, пояснения в todo_backend_app.validators
 # from todo_backend_app.validators import unique_email, unique_username
@@ -20,7 +22,7 @@ class TodoSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        """Подключения модели которую необходимо сериализовывать
+        """Подключение модели которую необходимо сериализовывать
         """
 
         # модель
@@ -57,7 +59,7 @@ class UserSerializer(serializers.ModelSerializer):
     profile_data = serializers.SerializerMethodField(read_only=False)
 
     class Meta:
-        """Подключения модели которую необходимо сериализовывать
+        """Подключение модели которую необходимо сериализовывать
         """
 
         model = User
@@ -100,6 +102,7 @@ class UserSerializer(serializers.ModelSerializer):
         """
 
         result = {
+            'confirmation_token': obj.profile.confirmation_token,
             'created_date': obj.profile.created_date,
             'modified_date': obj.profile.modified_date,
             'version': obj.profile.version,
@@ -129,10 +132,33 @@ class UserSerializer(serializers.ModelSerializer):
 
         # создание инстанса модели Profile для нового инстанса модели User
         Profile.objects.create(
-            user=user
+            user=user,
+            confirmation_token=uuid4().__str__()
         )
 
         return user
+
+
+class SystemEventSerializer(serializers.ModelSerializer):
+    """Сериализатор модели SystemEvent
+    """
+
+    class Meta:
+        """Подключение модели которую необходимо сериализовывать
+        """
+
+        model = SystemEvent
+
+        fields = [
+            'pk',
+            'event_id',
+            'topic',
+            'payload',
+            'published_date',
+            'created_date',
+            'modified_date',
+            'version',
+        ]
 
 
 if __name__ == '__main__':

@@ -6,6 +6,10 @@ Use Python 3.10.0
 Миксины
 """
 
+from uuid import uuid4
+
+import requests
+
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 
@@ -110,7 +114,6 @@ class TodoMixin():
 
             # проверка уникальности title для пользователя
             if self.queryset.filter(owner=request.user, title=title):
-                print('i waas')
                 raise ValidationError(
                     detail={
                         'status': status.HTTP_400_BAD_REQUEST,
@@ -247,6 +250,27 @@ class UserMixin():
             else:
                 self.perform_create(serializer)
                 headers = self.get_success_headers(serializer.data)
+
+                # суперлогика получения домена с которого происходит запрос...
+                uri = request.build_absolute_uri()
+                host = uri.split('api')[0][0:-1]
+
+                # создание инстанса события system_event (событие kafka)
+                response = requests.post(
+                    url=f'{config.LOCAL_HOST_HTTP}:{config.SERVICE_PORT}/api/v1/kafka/event/create/',
+                    json={
+                        'event_id': uuid4().__str__(),
+                        'topic': 'email_notification_topic',
+                        'payload': {
+                            'url': f'{host}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/',
+                            'email': serializer.data.get('email')
+                        }
+                    }
+                )
+
+                if response.status_code != 201:
+                    pass
+
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
         # если стандартные валидации drf не пройдены
@@ -305,6 +329,62 @@ class UserMixin():
             data=serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class SystemEventMixin():
+    """Миксин для обработки запросов связанных с инстансами модели SystemEvent
+    """
+
+    def get(self, request: Request, *args, **kwargs) -> Response:
+        """Переопределение метода обрабатывающего GET запрос
+
+        Args:
+            request (Request): HTTP request
+
+        Returns:
+            Response: HTTP response
+        """
+        queryset = self.queryset.filter(published_date=None)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """Переопределение метода обрабатывающего POST запрос
+
+        Args:
+            request (Request): HTTP request
+
+        Returns:
+            Response: HTTP response
+        """
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            data=serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    def put(self, request, *args, **kwargs) -> Response:
+        """Переопределение метода обрабатывающего PUT запрос
+
+        Args:
+            request (Request): HTTP request
+
+        Returns:
+            Response: HTTP response
+        """
+
+        return self.update(request, *args, **kwargs)
 
 
 if __name__ == '__main__':

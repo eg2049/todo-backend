@@ -10,11 +10,12 @@ from django.contrib.auth.models import User
 
 from rest_framework import generics, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.mixins import ListModelMixin, UpdateModelMixin
 from rest_framework.views import APIView
 
-from todo_backend_app.mixins import LoginMixin, LogoutMixin, UserMixin
-from todo_backend_app.models import Todo
-from todo_backend_app.serializers import TodoSerializer, UserSerializer
+from todo_backend_app.mixins import LoginMixin, SystemEventMixin, LogoutMixin, UserMixin
+from todo_backend_app.models import SystemEvent, Todo
+from todo_backend_app.serializers import SystemEventSerializer, TodoSerializer, UserSerializer
 
 
 class LoginAPIView(LoginMixin, ObtainAuthToken):
@@ -76,6 +77,21 @@ class UserRegistrationAPIView(UserMixin, generics.CreateAPIView):
     serializer_class = UserSerializer
 
     # разрешения необходимые для регистрации
+    permission_classes = [
+        permissions.AllowAny,
+    ]
+
+
+class SystemEventAPIView(SystemEventMixin,
+                         ListModelMixin,
+                         UpdateModelMixin,
+                         generics.GenericAPIView):
+    """Представление для обработки запроса на создание события Kafka
+    """
+
+    queryset = SystemEvent.objects.all()
+    serializer_class = SystemEventSerializer
+
     permission_classes = [
         permissions.AllowAny,
     ]
