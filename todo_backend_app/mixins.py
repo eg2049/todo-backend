@@ -262,8 +262,9 @@ class UserMixin():
                         'event_id': uuid4().__str__(),
                         'topic': 'email_notification_topic',
                         'payload': {
-                            'url': f'{host}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/',
-                            'email': serializer.data.get('email')
+                            'subject': 'account_confirmation',
+                            'recipient': serializer.data.get('email'),
+                            'url': f'{host}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/'
                         }
                     }
                 )
@@ -374,7 +375,7 @@ class SystemEventMixin():
             status=status.HTTP_201_CREATED
         )
 
-    def put(self, request, *args, **kwargs) -> Response:
+    def put(self, request: Request, *args, **kwargs) -> Response:
         """Переопределение метода обрабатывающего PUT запрос
 
         Args:
