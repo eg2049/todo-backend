@@ -251,9 +251,9 @@ class UserMixin():
                 self.perform_create(serializer)
                 headers = self.get_success_headers(serializer.data)
 
-                # суперлогика получения домена с которого происходит запрос...
-                uri = request.build_absolute_uri()
-                host = uri.split('api')[0][0:-1]
+                # # суперлогика получения домена с которого происходит запрос...
+                # uri = request.build_absolute_uri()
+                # host = uri.split('api')[0][0:-1]
 
                 # создание инстанса события system_event (событие kafka)
                 response = requests.post(
@@ -264,7 +264,7 @@ class UserMixin():
                         'payload': {
                             'subject': 'account_confirmation',
                             'recipient': serializer.data.get('email'),
-                            'url': f'{host}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/'
+                            'url': f'{config.SERVICE_HOST}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/'
                         }
                     }
                 )
