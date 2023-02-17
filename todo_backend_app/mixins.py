@@ -6,6 +6,7 @@ Use Python 3.10.0
 Миксины
 """
 
+from datetime import datetime
 from uuid import uuid4
 
 import requests
@@ -19,10 +20,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from todo_backend_app.error_messages import error_message_get_auth, error_message_get_common, error_message_get_todo
-from todo_backend_app.models import Todo
+from todo_backend_app.models import Profile, Todo
 from todo_backend_app.utils import email_regex
 
-from config import config
+from config.config import CONFIRM_ACCOUNT_URL, LOCAL_HOST_HTTP, PASSWORD_MIN_LENGTH, SERVICE_HOST, SERVICE_PORT
 
 
 class LoginMixin():
@@ -226,7 +227,6 @@ class UserMixin():
 
             # проверка уникальности email
             if User.objects.filter(email=request.data.get('email')):
-
                 raise ValidationError(
                     detail={
                         'status': status.HTTP_400_BAD_REQUEST,
@@ -235,18 +235,17 @@ class UserMixin():
                     code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # проверка длины пароля
-            elif len(request.data.get('password')) < config.PASSWORD_MIN_LENGTH:
+            # # проверка длины пароля (перенесена в подтверждение аккаунта)
+            # elif len(request.data.get('password')) < config.PASSWORD_MIN_LENGTH:
+            #     raise ValidationError(
+            #         detail={
+            #             'status': status.HTTP_400_BAD_REQUEST,
+            #             'message': error_message_get_auth(message_name='password_too_short')
+            #         },
+            #         code=status.HTTP_400_BAD_REQUEST
+            #     )
 
-                raise ValidationError(
-                    detail={
-                        'status': status.HTTP_400_BAD_REQUEST,
-                        'message': error_message_get_auth(message_name='password_too_short')
-                    },
-                    code=status.HTTP_400_BAD_REQUEST
-                )
-
-            # регистрация новго пользователя и 201 ответ
+            # регистрация нового пользователя и 201 ответ
             else:
                 self.perform_create(serializer)
                 headers = self.get_success_headers(serializer.data)
@@ -257,14 +256,14 @@ class UserMixin():
 
                 # создание инстанса события system_event (событие kafka)
                 response = requests.post(
-                    url=f'{config.LOCAL_HOST_HTTP}:{config.SERVICE_PORT}/api/v1/kafka/event/create/',
+                    url=f'{LOCAL_HOST_HTTP}:{SERVICE_PORT}/api/v1/kafka/event/create/',
                     json={
                         'event_id': uuid4().__str__(),
                         'topic': 'email_notification_topic',
                         'payload': {
                             'subject': 'account_confirmation',
                             'recipient': serializer.data.get('email'),
-                            'url': f'{config.SERVICE_HOST}{config.CONFIRM_ACCOUNT_ENDPOINT}{serializer.data.get("profile_data").get("confirmation_token")}/'
+                            'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{serializer.data.get("profile_data").get("confirmation_token")}'
                         }
                     }
                 )
@@ -279,7 +278,6 @@ class UserMixin():
 
             # проверка уникальности username
             if User.objects.filter(username=request.data.get('username')):
-
                 raise ValidationError(
                     detail={
                         'status': status.HTTP_400_BAD_REQUEST,
@@ -290,7 +288,6 @@ class UserMixin():
 
             # проверка валидности email
             elif not email_regex(email=request.data.get('email')):
-
                 raise ValidationError(
                     detail={
                         'status': status.HTTP_400_BAD_REQUEST,
@@ -301,7 +298,6 @@ class UserMixin():
 
             # 500 ответ
             else:
-
                 raise APIException(
                     detail={
                         'status': status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -330,6 +326,71 @@ class UserMixin():
             data=serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class ProfileMixin():
+    """Миксин для работы с инстансами модели Profile
+    """
+
+    def put(self, request: Request, *args, **kwargs) -> Response or ValidationError:
+        """Переопределение метода обрабатывающего PUT запрос
+
+        Args:
+            request (Request): HTTP request
+
+        Returns:
+            Response: HTTP response
+        """
+
+        token = request.data.get('token')
+        password = request.data.get('password')
+
+        # проверка существования токена
+        if not Profile.objects.filter(confirmation_token=token):
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='confirm_token_not_found')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # проверка подтверждённости профиля
+        elif Profile.objects.get(confirmation_token=token).confirmed_date:
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='profile_already_confirmed')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # проверка длины пароля
+        elif len(password) < PASSWORD_MIN_LENGTH:
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='password_too_short')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # подтверждение профиля и установка пароля
+        else:
+            profile = Profile.objects.get(confirmation_token=token)
+            profile.confirmed_date = datetime.now()
+            profile.save()
+
+            user = User.objects.get(profile__pk=profile.pk)
+            user.set_password(raw_password=password)
+            user.save()
+
+            return Response(
+                data={
+                    'username': user.username
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class SystemEventMixin():

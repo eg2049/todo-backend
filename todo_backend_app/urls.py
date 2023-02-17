@@ -13,6 +13,7 @@ from todo_backend_app.views import (
     LogoutAPIView,
     SystemEventAPIView,
     TodoListCreateAPIView,
+    ProfileAPIView,
     UserDetailAPIView,
     UserRegistrationAPIView,
 )
@@ -27,6 +28,9 @@ urlpatterns = [
 
     path(route='profile/',
          view=UserDetailAPIView.as_view(), name='profile'),
+
+    path(route='profile/confirmation/',
+         view=ProfileAPIView.as_view(), name='profile-confirmation'),
 
     path(route='registration/',
          view=UserRegistrationAPIView.as_view(), name='registration'),

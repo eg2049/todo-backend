@@ -55,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User
     """
 
-    password = serializers.CharField(write_only=True)
+    # password = serializers.CharField(write_only=True)
     profile_data = serializers.SerializerMethodField(read_only=False)
 
     class Meta:
@@ -67,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'pk',
             'username',
-            'password',
+            # 'password',
             'email',
             'last_name',
             'first_name',
@@ -126,9 +126,9 @@ class UserSerializer(serializers.ModelSerializer):
             email=validated_data.get('email')
         )
 
-        # сохранение пароля в зашифрованном виде
-        user.set_password(validated_data.get('password'))
-        user.save()
+        # # сохранение пароля в зашифрованном виде
+        # user.set_password(validated_data.get('password'))
+        # user.save()
 
         # создание инстанса модели Profile для нового инстанса модели User
         Profile.objects.create(
@@ -137,6 +137,41 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Profile
+    """
+
+    class Meta:
+        """Подключение модели которую необходимо сериализовывать
+        """
+
+        model = Profile
+
+        fields = [
+            'confirmation_token',
+            'confirmed_date',
+        ]
+
+    # def update(self, instance: Profile, validated_data: dict) -> Profile:
+    #     """Редактирование инстанса модели Profile
+
+    #     Args:
+    #         instance (Profile): инстанс модели Profile
+    #         validated_data (dict): данные для редактирования
+
+    #     Returns:
+    #         Profile: инстанс модели Profile
+    #     """
+
+    #     # проставление даты подтверждения акканута, если она ещё не проставлена
+    #     if not instance.confirmed_date:
+    #         instance.confirmed_date = datetime.now()
+
+    #     obj = super().update(instance=instance, validated_data=validated_data)
+
+    #     return obj
 
 
 class SystemEventSerializer(serializers.ModelSerializer):

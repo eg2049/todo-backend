@@ -13,9 +13,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.mixins import ListModelMixin, UpdateModelMixin
 from rest_framework.views import APIView
 
-from todo_backend_app.mixins import LoginMixin, SystemEventMixin, LogoutMixin, UserMixin
-from todo_backend_app.models import SystemEvent, Todo
-from todo_backend_app.serializers import SystemEventSerializer, TodoSerializer, UserSerializer
+from todo_backend_app.mixins import LoginMixin, ProfileMixin, SystemEventMixin, LogoutMixin, UserMixin
+from todo_backend_app.models import Profile, SystemEvent, Todo
+from todo_backend_app.serializers import ProfileSerializer, SystemEventSerializer, TodoSerializer, UserSerializer
 
 
 class LoginAPIView(LoginMixin, ObtainAuthToken):
@@ -82,11 +82,23 @@ class UserRegistrationAPIView(UserMixin, generics.CreateAPIView):
     ]
 
 
+class ProfileAPIView(ProfileMixin, generics.GenericAPIView):
+    """Представление для обработки запросов связанных с профилем пользователя
+    """
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    permission_classes = [
+        permissions.AllowAny,
+    ]
+
+
 class SystemEventAPIView(SystemEventMixin,
                          ListModelMixin,
                          UpdateModelMixin,
                          generics.GenericAPIView):
-    """Представление для обработки запроса на создание события Kafka
+    """Представление для обработки запросов связанных с событиями Kafka
     """
 
     queryset = SystemEvent.objects.all()

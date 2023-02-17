@@ -6,7 +6,7 @@ Use Python 3.10.0
 Сообщения с текстами ошибок
 """
 
-from config import config
+from config.config import PASSWORD_MIN_LENGTH
 
 
 def error_message_get_common(message_name: str) -> str or None:
@@ -44,17 +44,23 @@ def error_message_get_auth(message_name: str) -> str or None:
     if message_name == 'invalid_credentials':
         result = 'Invalid credentials.'
 
-    elif message_name == 'email_already_exists':
+    elif message_name == 'email_invalid':
+        result = 'Invalid email.'
+
+    if message_name == 'email_already_exists':
         result = 'A user with that email already exists.'
 
     elif message_name == 'username_already_exists':
         result = 'A user with that username already exists.'
 
     elif message_name == 'password_too_short':
-        result = f'Password length less than {config.PASSWORD_MIN_LENGTH} characters.'
+        result = f'Password length less than {PASSWORD_MIN_LENGTH} characters.'
 
-    elif message_name == 'email_invalid':
-        result = 'Invalid email.'
+    elif message_name == 'confirm_token_not_found':
+        result = 'Confirm token not found.'
+
+    elif message_name == 'profile_already_confirmed':
+        result = 'Profile already confirmed.'
 
     else:
         result = None
