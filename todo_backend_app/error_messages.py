@@ -47,17 +47,29 @@ def error_message_get_auth(message_name: str) -> str or None:
     elif message_name == 'email_invalid':
         result = 'Invalid email.'
 
-    if message_name == 'email_already_exists':
+    elif message_name == 'email_already_exists':
         result = 'A user with that email already exists.'
 
     elif message_name == 'username_already_exists':
         result = 'A user with that username already exists.'
 
+    elif message_name == 'password_is_required':
+        result = 'Password is required'
+
     elif message_name == 'password_too_short':
         result = f'Password length less than {PASSWORD_MIN_LENGTH} characters.'
 
+    elif message_name == 'token_is_required':
+        result = 'Token is required'
+
+    elif message_name == 'invalid_uuid_token':
+        result = 'Invalid UUID token.'
+
     elif message_name == 'confirm_token_not_found':
         result = 'Confirm token not found.'
+
+    elif message_name == 'profile_not_confirmed':
+        result = 'Profile not confirmed, follow the link in the email specified during registration.'
 
     elif message_name == 'profile_already_confirmed':
         result = 'Profile already confirmed.'

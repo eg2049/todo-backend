@@ -7,7 +7,7 @@ Use Python 3.10.0
 """
 
 from datetime import datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import requests
 
@@ -20,7 +20,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from todo_backend_app.error_messages import error_message_get_auth, error_message_get_common, error_message_get_todo
-from todo_backend_app.models import Profile, Todo
+from todo_backend_app.models import Profile, SystemEvent, Todo
 from todo_backend_app.utils import email_regex
 
 from config.config import CONFIRM_ACCOUNT_URL, LOCAL_HOST_HTTP, PASSWORD_MIN_LENGTH, SERVICE_HOST, SERVICE_PORT
@@ -44,14 +44,35 @@ class LoginMixin():
         try:
             return super().post(request, *args, **kwargs)
 
-        # обработка исключения неправильных логина / пароля
-        except ValidationError:
-            raise ValidationError(
-                detail={
-                    'status': status.HTTP_400_BAD_REQUEST,
-                    'message': error_message_get_auth(message_name='invalid_credentials')
+        # обработка исключения
+        except ValidationError as exc:
+
+            username = request.data.get('username')
+            profile = Profile.objects.filter(user__username=username)
+
+            # проверка подтверждённости профиля
+            if profile and not profile[0].confirmed_date:
+                response_status = status.HTTP_400_BAD_REQUEST
+                error_message = error_message_get_auth(
+                    message_name='profile_not_confirmed')
+
+            # проверка правильности логина / пароля
+            elif exc.detail.get('non_field_errors') or exc.detail.get('password'):
+                response_status = status.HTTP_400_BAD_REQUEST
+                error_message = error_message_get_auth(
+                    message_name='invalid_credentials')
+
+            # 500 ответ
+            else:
+                response_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+                error_message = None
+
+            return Response(
+                data={
+                    'status': response_status,
+                    'message': error_message
                 },
-                code=status.HTTP_400_BAD_REQUEST
+                status=response_status
             )
 
 
@@ -276,8 +297,34 @@ class UserMixin():
         # если стандартные валидации drf не пройдены
         else:
 
+            user = User.objects.filter(email=request.data.get(
+                'email'), username=request.data.get('username'))
+
+            # проверка существования пары email & username
+            if user:
+
+                token = Profile.objects.get(
+                    user__pk=user[0].pk).confirmation_token
+
+                SystemEvent.objects.create(
+                    event_id=uuid4().__str__(),
+                    topic='email_notification_topic',
+                    payload={
+                        'subject': 'account_confirmation',
+                        'recipient': request.data.get('email'),
+                        'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{token}'
+                    }
+                )
+
+                return Response(
+                    data={
+                        'status': status.HTTP_200_OK
+                    },
+                    status=status.HTTP_200_OK
+                )
+
             # проверка уникальности username
-            if User.objects.filter(username=request.data.get('username')):
+            elif User.objects.filter(username=request.data.get('username')):
                 raise ValidationError(
                     detail={
                         'status': status.HTTP_400_BAD_REQUEST,
@@ -343,7 +390,33 @@ class ProfileMixin():
         """
 
         token = request.data.get('token')
+        token = str(token) if token else token
+
         password = request.data.get('password')
+        password = str(password) if password else password
+
+        try:
+            UUID(token)
+
+        # если токен не передавался, или token is None
+        except TypeError:
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='token_is_required')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # если токен - не UUID
+        except ValueError:
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='invalid_uuid_token')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
 
         # проверка существования токена
         if not Profile.objects.filter(confirmation_token=token):
@@ -361,6 +434,16 @@ class ProfileMixin():
                 detail={
                     'status': status.HTTP_400_BAD_REQUEST,
                     'message': error_message_get_auth(message_name='profile_already_confirmed')
+                },
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # если пароль не передавался или password is None
+        elif not password:
+            raise ValidationError(
+                detail={
+                    'status': status.HTTP_400_BAD_REQUEST,
+                    'message': error_message_get_auth(message_name='password_is_required')
                 },
                 code=status.HTTP_400_BAD_REQUEST
             )
