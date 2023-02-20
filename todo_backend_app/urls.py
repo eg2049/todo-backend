@@ -11,7 +11,6 @@ from django.urls import path
 from todo_backend_app.views import (
     LoginAPIView,
     LogoutAPIView,
-    SystemEventAPIView,
     TodoListCreateAPIView,
     ProfileAPIView,
     UserDetailAPIView,
@@ -34,9 +33,6 @@ urlpatterns = [
 
     path(route='registration/',
          view=UserRegistrationAPIView.as_view(), name='registration'),
-
-    path(route='kafka/event/create/', view=SystemEventAPIView.as_view(),
-         name='system-event-create'),
 
     path(route='todo/', view=TodoListCreateAPIView.as_view(),
          name='todo-list-create'),

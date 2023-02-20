@@ -9,8 +9,6 @@ Use Python 3.10.0
 from datetime import datetime
 from uuid import UUID, uuid4
 
-import requests
-
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 
@@ -23,7 +21,7 @@ from todo_backend_app.error_messages import error_message_get_auth, error_messag
 from todo_backend_app.models import Profile, SystemEvent, Todo
 from todo_backend_app.utils import email_regex
 
-from config.config import CONFIRM_ACCOUNT_URL, LOCAL_HOST_HTTP, PASSWORD_MIN_LENGTH, SERVICE_HOST, SERVICE_PORT
+from config.config import CONFIRM_ACCOUNT_URL, PASSWORD_MIN_LENGTH, SERVICE_HOST
 
 
 class LoginMixin():
@@ -256,16 +254,6 @@ class UserMixin():
                     code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # # проверка длины пароля (перенесена в подтверждение аккаунта)
-            # elif len(request.data.get('password')) < config.PASSWORD_MIN_LENGTH:
-            #     raise ValidationError(
-            #         detail={
-            #             'status': status.HTTP_400_BAD_REQUEST,
-            #             'message': error_message_get_auth(message_name='password_too_short')
-            #         },
-            #         code=status.HTTP_400_BAD_REQUEST
-            #     )
-
             # регистрация нового пользователя и 201 ответ
             else:
                 self.perform_create(serializer)
@@ -276,21 +264,15 @@ class UserMixin():
                 # host = uri.split('api')[0][0:-1]
 
                 # создание инстанса события system_event (событие kafka)
-                response = requests.post(
-                    url=f'{LOCAL_HOST_HTTP}:{SERVICE_PORT}/api/v1/kafka/event/create/',
-                    json={
-                        'event_id': uuid4().__str__(),
-                        'topic': 'email_notification_topic',
-                        'payload': {
-                            'subject': 'account_confirmation',
-                            'recipient': serializer.data.get('email'),
-                            'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{serializer.data.get("profile_data").get("confirmation_token")}'
-                        }
+                SystemEvent.objects.create(
+                    event_id=uuid4().__str__(),
+                    topic='email_notification_topic',
+                    payload={
+                        'subject': 'account_confirmation',
+                        'recipient': serializer.data.get('email'),
+                        'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{serializer.data.get("profile_data").get("confirmation_token")}'
                     }
                 )
-
-                if response.status_code != 201:
-                    pass
 
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -474,62 +456,6 @@ class ProfileMixin():
                 },
                 status=status.HTTP_200_OK
             )
-
-
-class SystemEventMixin():
-    """Миксин для обработки запросов связанных с инстансами модели SystemEvent
-    """
-
-    def get(self, request: Request, *args, **kwargs) -> Response:
-        """Переопределение метода обрабатывающего GET запрос
-
-        Args:
-            request (Request): HTTP request
-
-        Returns:
-            Response: HTTP response
-        """
-        queryset = self.queryset.filter(published_date=None)
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
-
-    def post(self, request: Request, *args, **kwargs) -> Response:
-        """Переопределение метода обрабатывающего POST запрос
-
-        Args:
-            request (Request): HTTP request
-
-        Returns:
-            Response: HTTP response
-        """
-
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(
-            data=serializer.data,
-            status=status.HTTP_201_CREATED
-        )
-
-    def put(self, request: Request, *args, **kwargs) -> Response:
-        """Переопределение метода обрабатывающего PUT запрос
-
-        Args:
-            request (Request): HTTP request
-
-        Returns:
-            Response: HTTP response
-        """
-
-        return self.update(request, *args, **kwargs)
 
 
 if __name__ == '__main__':

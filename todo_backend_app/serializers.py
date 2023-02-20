@@ -174,27 +174,5 @@ class ProfileSerializer(serializers.ModelSerializer):
     #     return obj
 
 
-class SystemEventSerializer(serializers.ModelSerializer):
-    """Сериализатор модели SystemEvent
-    """
-
-    class Meta:
-        """Подключение модели которую необходимо сериализовывать
-        """
-
-        model = SystemEvent
-
-        fields = [
-            'pk',
-            'event_id',
-            'topic',
-            'payload',
-            'published_date',
-            'created_date',
-            'modified_date',
-            'version',
-        ]
-
-
 if __name__ == '__main__':
     pass
