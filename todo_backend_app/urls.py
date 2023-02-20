@@ -38,12 +38,6 @@ urlpatterns = [
     path(route='kafka/event/create/', view=SystemEventAPIView.as_view(),
          name='system-event-create'),
 
-    path(route='kafka/event/get/', view=SystemEventAPIView.as_view(),
-         name='system-event-get'),
-
-    path(route='kafka/event/update/<uuid:pk>/', view=SystemEventAPIView.as_view(),
-         name='system-event-update'),
-
     path(route='todo/', view=TodoListCreateAPIView.as_view(),
          name='todo-list-create'),
 ]
