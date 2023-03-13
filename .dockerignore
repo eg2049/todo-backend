@@ -3,7 +3,7 @@ Dockerfile*
 .dockerignore
 
 # configuration
-config.py
+config/config.py
 
 # Git
 .git/
