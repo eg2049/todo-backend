@@ -6,8 +6,10 @@ Use Python 3.10.0
 Демон публикации событий kafka
 """
 
-import time
 from datetime import datetime
+from time import sleep
+
+from django.db.utils import ProgrammingError
 
 from todo_backend_app.kafka.producer import event_sender
 from todo_backend_app.models import SystemEvent
@@ -19,21 +21,25 @@ def system_event_publisher_daemon() -> None:
 
     while True:
 
-        not_published_events = SystemEvent.objects.filter(
-            published_date=None)
+        try:
+            not_published_events = SystemEvent.objects.filter(
+                published_date=None)
 
-        for event in not_published_events:
+            for event in not_published_events:
 
-            event_sender(
-                topic=event.topic,
-                value=event.payload
-            )
+                event_sender(
+                    topic=event.topic,
+                    value=event.payload
+                )
 
-            event.published_date = datetime.now()
+                event.published_date = datetime.now()
 
-            event.save()
+                event.save()
 
-        time.sleep(5)
+        except ProgrammingError:
+            pass
+
+        sleep(5)
 
 
 if __name__ == '__main__':
