@@ -52,7 +52,7 @@ RUN . $VENV_ACTIVATE && pip install --upgrade pip && pip install --no-cache-dir 
 # также контейнер сам может изменять локальные файлы в этой директории
 
 # активация вирутального окружения получение / накатывание миграций / запуск приложения
-CMD . $VENV_ACTIVATE && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver $HOST:$PORT --noreload
+CMD . $VENV_ACTIVATE && python3 manage.py migrate && python3 manage.py runserver $HOST:$PORT --noreload
 
 # другой вариант
 # CMD gunicorn todo_backend.wsgi:application --bind $HOST:$PORT
