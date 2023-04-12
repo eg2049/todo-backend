@@ -2,6 +2,9 @@
 Dockerfile*
 .dockerignore
 
+# Jenkins stuff
+Jenkinsfile*
+
 # configuration
 config/config.py
 
