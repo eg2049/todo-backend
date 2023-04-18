@@ -21,26 +21,26 @@ pipeline {
     //     booleanParam(name: 'executeTests', defaultValue: true, description: '')
     // }
 
-    // // все переменные для docker-контейнера можно определить через UI Jenkins 
-    // // Manage Jenkins -> Clouds -> Docker Agent templates -> Countainer settings -> Environment
-    // environment {
+    // все переменные для docker-контейнера можно определить через UI Jenkins 
+    // Manage Jenkins -> Clouds -> Docker Agent templates -> Countainer settings -> Environment
+    environment {
 
-    //     GIT_REPOSITORY=''
-    //     GIT_BRANCH_NAME='main'
-    //     GIT_CREDENTIALS='GIT_CREDENTIALS'
+        // GIT_REPOSITORY=''
+        // GIT_BRANCH_NAME='main'
+        // GIT_CREDENTIALS='GIT_CREDENTIALS'
 
-    //     DOCKER_REGISTRY='https://hub.docker.com'
-    //     DOCKER_REPOSITORY=''
+        // DOCKER_REGISTRY='https://hub.docker.com'
+        // DOCKER_REPOSITORY=''
 
-    //     // // функция credentials() - находится в плагине Credentials Binding, получает из хранилища Jenkins (плагин Credentials) креды по id
-    //     // DOCKER_CREDENTIALS=credentials('DOCKER_CREDENTIALS')
+        // // // функция credentials() - находится в плагине Credentials Binding, получает из хранилища Jenkins (плагин Credentials) креды по id
+        // // DOCKER_CREDENTIALS=credentials('DOCKER_CREDENTIALS')
 
-    //     // просто объявление id кред от DockerHub
-    //     DOCKER_CREDENTIALS='DOCKER_CREDENTIALS'
+        // // просто объявление id кред от DockerHub
+        // DOCKER_CREDENTIALS='DOCKER_CREDENTIALS'
 
-    //     SERVICE_NAME='todo-backend'
-    //     VERSION='0.1.0'
-    // }
+        SERVICE_NAME='todo-backend'
+        VERSION='0.1.0'
+    }
 
     // // каждые 5 минут jenkins будет проверять git-репозиторий на появление новых коммитов
     // // если будет найден новый коммит, будет запущен build job-ы
@@ -69,15 +69,15 @@ pipeline {
 
                 // внутри блока script можно записывать groovy код
                 script {
-                    dockerImage = docker.build("${DOCKER_REPOSITORY}:${VERSION}")
+                    dockerImage = docker.build("${DOCKER_REPOSITORY}/${SERVICE_NAME}:${VERSION}")
                 }
 
                 // // более понятный код
                 // sh "docker build -t ${SERVICE_NAME}:${VERSION} ."
 
-                // sh "docker tag ${SERVICE_NAME}:${VERSION} ${DOCKER_REPOSITORY}:${VERSION}"
+                // sh "docker tag ${SERVICE_NAME}:${VERSION} ${DOCKER_REPOSITORY}/${SERVICE_NAME}"
 
-                // sh "docker build -t ${DOCKER_REPOSITORY}:${VERSION} ."
+                // sh "docker build -t ${DOCKER_REPOSITORY}/${SERVICE_NAME} ."
             }
         }
 
@@ -140,7 +140,7 @@ pipeline {
                 // sh "echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin $DOCKER_REGISTRY"
 
                 // echo 'Push...'
-                // sh "docker push ${DOCKER_REPOSITORY}:${VERSION}"
+                // sh "docker push ${DOCKER_REPOSITORY}/${SERVICE_NAME}"
 
                 // echo 'Logout...'
                 // sh 'docker logout'
@@ -148,10 +148,11 @@ pipeline {
         }
 
         stage('Remove') {
+
             steps {
                 echo 'Remove...'
 
-                sh "docker rmi ${DOCKER_REPOSITORY}:${VERSION}"
+                sh "docker rmi ${DOCKER_REPOSITORY}/${SERVICE_NAME}:${VERSION}"
             }
         }
     }
