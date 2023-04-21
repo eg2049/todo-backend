@@ -21,7 +21,7 @@ from todo_backend_app.error_messages import error_message_get_auth, error_messag
 from todo_backend_app.models import Profile, SystemEvent, Todo
 from todo_backend_app.utils import email_regex
 
-from config.config import CONFIRM_ACCOUNT_URL, PASSWORD_MIN_LENGTH, SERVICE_HOST
+from config.config import CONFIRM_ACCOUNT_URL, PASSWORD_MIN_LENGTH, TODO_UI_HOST
 
 
 class LoginMixin():
@@ -270,7 +270,7 @@ class UserMixin():
                     payload={
                         'subject': 'account_confirmation',
                         'recipient': serializer.data.get('email'),
-                        'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{serializer.data.get("profile_data").get("confirmation_token")}'
+                        'url': f'{TODO_UI_HOST}{CONFIRM_ACCOUNT_URL}{serializer.data.get("profile_data").get("confirmation_token")}'
                     }
                 )
 
@@ -294,7 +294,7 @@ class UserMixin():
                     payload={
                         'subject': 'account_confirmation',
                         'recipient': request.data.get('email'),
-                        'url': f'{SERVICE_HOST}{CONFIRM_ACCOUNT_URL}{token}'
+                        'url': f'{TODO_UI_HOST}{CONFIRM_ACCOUNT_URL}{token}'
                     }
                 )
 
